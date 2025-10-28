@@ -1,20 +1,23 @@
 import React, { useState, useRef } from 'react';
 
-const TaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete }) => {
+const TaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete, onPriorityClick, getPriorityLabel, getPriorityClass, isRecentlyCompleted = false, dragHandleProps = null }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const touchStartX = useRef(0);
   const containerRef = useRef(null);
+  const isDragging = useRef(false);
 
   // Universal swipe handler for both devices
   const handleSwipeStart = (clientX) => {
+    if (isDragging.current) return; // Don't start swipe if dragging
+    
     setIsSwiping(true);
     touchStartX.current = clientX;
     setSwipeOffset(0);
   };
 
   const handleSwipeMove = (clientX) => {
-    if (!isSwiping) return;
+    if (!isSwiping || isDragging.current) return;
     
     const deltaX = clientX - touchStartX.current;
     
@@ -26,6 +29,12 @@ const TaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete }) => {
   };
 
   const handleSwipeEnd = () => {
+    if (isDragging.current) {
+      setIsSwiping(false);
+      setSwipeOffset(0);
+      return;
+    }
+    
     setIsSwiping(false);
     
     // If swiped enough, keep delete visible
@@ -38,24 +47,40 @@ const TaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete }) => {
 
   // MOBILE Touch Events
   const handleTouchStart = (e) => {
+    // Don't start swipe if touching the drag handle
+    if (e.target.closest('.drag-handle')) {
+      isDragging.current = true;
+      return;
+    }
     e.preventDefault();
     handleSwipeStart(e.touches[0].clientX);
   };
 
   const handleTouchMove = (e) => {
+    if (isDragging.current) return;
+    if (!isSwiping) return;
     e.preventDefault();
     handleSwipeMove(e.touches[0].clientX);
   };
 
   const handleTouchEnd = (e) => {
+    if (isDragging.current) {
+      isDragging.current = false;
+      return;
+    }
+    if (!isSwiping) return;
     e.preventDefault();
     handleSwipeEnd();
   };
 
   // LAPTOP Mouse Events
   const handleMouseDown = (e) => {
-    // Only start swipe if not clicking on checkbox or delete button
-    if (e.target.type === 'checkbox' || e.target.closest('.delete-btn')) {
+    // Don't start swipe if clicking on drag handle, checkbox, priority badge, or delete button
+    if (e.target.closest('.drag-handle') || 
+        e.target.type === 'checkbox' || 
+        e.target.closest('.priority-badge-editable') || 
+        e.target.closest('.delete-btn') ||
+        e.target.closest('.dashboard-delete-btn')) {
       return;
     }
     handleSwipeStart(e.clientX);
@@ -75,12 +100,17 @@ const TaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete }) => {
     }
   };
 
+  // Reset drag state when component unmounts or task changes
+  React.useEffect(() => {
+    return () => {
+      isDragging.current = false;
+    };
+  }, [task.id]);
+
   // DELETE FUNCTION
   const handleDeleteClick = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    
-    console.log('🗑️ DELETE CLICKED for:', task.title);
     
     if (onDelete && typeof onDelete === 'function') {
       onDelete();
@@ -99,7 +129,7 @@ const TaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete }) => {
   return (
     <div 
       ref={containerRef}
-      className="task-item-container"
+      className={`task-item-container ${isRecentlyCompleted ? 'recently-completed' : ''}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -125,6 +155,24 @@ const TaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete }) => {
         </button>
       </div>
 
+      {/* Drag Handle - Only for incomplete tasks */}
+      {!task.completed && dragHandleProps && (
+        <div 
+          className="drag-handle"
+          {...dragHandleProps}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            isDragging.current = true;
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            isDragging.current = true;
+          }}
+        >
+          ⋮⋮
+        </div>
+      )}
+
       {/* Main task item */}
       <div 
         className="task-item"
@@ -145,9 +193,27 @@ const TaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete }) => {
             {task.title}
           </span>
           <span className="task-space">{task.spaceName}</span>
+          {task.description && (
+            <span className="task-description-hint">📝 Has description</span>
+          )}
+          {task.checklist && task.checklist.length > 0 && (
+            <span className="task-checklist-hint">
+              ✅ {task.checklist.filter(item => item.completed).length}/{task.checklist.length}
+            </span>
+          )}
         </div>
-        <div className={`task-priority priority-${task.priority}`}>
-          P{task.priority}
+        
+        {/* Priority Badge - Click to Edit */}
+        <div 
+          className={`priority-badge-editable ${getPriorityLabel ? getPriorityClass(task.priority) : 'priority-low'} ${task.completed ? 'completed' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onPriorityClick && typeof onPriorityClick === 'function') {
+              onPriorityClick();
+            }
+          }}
+        >
+          {getPriorityLabel ? getPriorityLabel(task.priority) : 'Low'}
         </div>
       </div>
     </div>

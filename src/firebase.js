@@ -3,7 +3,6 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyC4281hfbdHYrxgJskWCOI-IwNurf-AvsU",
   authDomain: "todo-list-3937e.firebaseapp.com",
@@ -13,13 +12,9 @@ const firebaseConfig = {
   appId: "1:909324969773:web:8fa6c7930e17599ae515a4"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Initialize services
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Export services
 export { db, auth };
 export default app;
