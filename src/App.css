@@ -1869,3 +1869,1269 @@ textarea:focus {
   color: #6c757d;
   border: 1px solid #e9ecef;
 }
+/* ===== MOBILE OPTIMIZATIONS ===== */
+
+/* Safe area insets for notch devices */
+.app {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  min-height: 100vh;
+}
+
+.header {
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-bottom: 1rem;
+}
+
+/* Prevent text selection and tap highlight */
+.task-item,
+.space-item,
+.checklist-item,
+.dashboard-task-item,
+.priority-badge-editable,
+.drag-handle {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Better touch targets for mobile */
+@media (max-width: 768px) {
+  .task-item,
+  .dashboard-task-item {
+    min-height: 70px;
+    padding: 1.25rem 1rem;
+  }
+  
+  .checklist-item {
+    min-height: 60px;
+    padding: 1rem 1.5rem;
+  }
+  
+  .space-item {
+    min-height: 55px;
+    padding: 1rem;
+  }
+  
+  .task-checkbox,
+  .checklist-checkbox {
+    width: 24px;
+    height: 24px;
+  }
+  
+  /* Larger touch targets for buttons */
+  .logout-btn,
+  .add-btn,
+  .back-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .priority-badge-editable {
+    min-height: 40px;
+    min-width: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Prevent zoom on input focus in iOS */
+input, select, textarea {
+  font-size: 16px;
+}
+
+/* Improved touch feedback */
+.task-item:active,
+.dashboard-task-item:active,
+.space-item:active,
+.checklist-item:active {
+  background-color: #f8f9fa;
+}
+
+/* Better swipe handling */
+.task-item-container,
+.dashboard-task-item-container,
+.checklist-item-container {
+  touch-action: pan-y;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Hide scrollbars but keep functionality */
+  .space-list::-webkit-scrollbar,
+  .checklist-items::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .space-list,
+  .checklist-items {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  /* Improved header for mobile */
+  .header h1 {
+    font-size: 1.3rem;
+  }
+  
+  /* Better side menu for mobile */
+  .side-menu {
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  /* Enhanced search input */
+  .search-input {
+    font-size: 16px;
+    padding: 14px 16px;
+  }
+  
+  /* Better drag handle visibility */
+  .drag-handle {
+    opacity: 0.7;
+    font-size: 16px;
+  }
+}
+
+/* Status bar background for mobile app */
+body {
+  background: white;
+  margin: 0;
+  padding: 0;
+}
+
+/* Swipe animation improvements */
+.delete-action-left,
+.dashboard-delete-action,
+.checklist-delete-action {
+  transition: all 0.2s ease;
+}
+
+.task-item,
+.dashboard-task-item,
+.checklist-item {
+  transition: transform 0.2s ease;
+}
+
+/* Loading state improvements */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.1rem;
+  background: white;
+}
+/* ===== MOBILE DRAG & DROP OPTIMIZATIONS ===== */
+
+/* Drag handle styling */
+.drag-handle {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 18px;
+  cursor: grab;
+  padding: 12px 8px;
+  z-index: 10;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+  opacity: 1;
+}
+
+/* Mobile drag feedback */
+.task-item-drag-container.dragging,
+.dashboard-task-drag-container.dragging {
+  opacity: 0.8;
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+  z-index: 1000;
+  position: relative;
+}
+
+.task-item-drag-container.drag-over,
+.dashboard-task-drag-container.drag-over {
+  background-color: #e3f2fd;
+  border-top: 2px solid #2196f3;
+  margin: 4px 0;
+  transition: all 0.3s ease;
+}
+
+/* Drop zone styling */
+.drop-zone {
+  min-height: 4px;
+  background: linear-gradient(90deg, #2196f3, #21cbf3);
+  margin: 2px 0;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.drop-zone.active {
+  opacity: 1;
+}
+
+/* Better touch targets for mobile drag */
+@media (max-width: 768px) {
+  .drag-handle {
+    opacity: 0.5;
+    font-size: 20px;
+    padding: 15px 10px;
+  }
+  
+  .task-item-drag-container,
+  .dashboard-task-drag-container {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  /* Make drag more obvious on mobile */
+  .task-item-drag-container.dragging,
+  .dashboard-task-drag-container.dragging {
+    transform: scale(0.95) rotate(1deg);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  }
+}
+
+/* Prevent text selection during drag */
+.task-item-drag-container,
+.dashboard-task-drag-container {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Smooth transitions for drag operations */
+.task-item-container,
+.dashboard-task-item-container {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Enhanced drag handle visibility on hover */
+@media (hover: hover) {
+  .task-item-drag-container:hover .drag-handle,
+  .dashboard-task-drag-container:hover .drag-handle {
+    opacity: 1;
+  }
+}
+
+/* Mobile-specific drag improvements */
+@media (max-width: 768px) {
+  .task-item-drag-container,
+  .dashboard-task-drag-container {
+    margin-left: 50px;
+  }
+  
+  .swipe-instructions {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+  }
+}
+
+/* Drag animation for better UX */
+@keyframes drag-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.task-item-drag-container.dragging .task-item,
+.dashboard-task-drag-container.dragging .dashboard-task-item {
+  animation: drag-pulse 1s ease-in-out infinite;
+}
+
+/* Improved task item layout for drag handle */
+.task-item-container,
+.dashboard-task-item-container {
+  position: relative;
+  padding-left: 10px;
+}
+
+/* Ensure drag handle doesn't interfere with swipe */
+.drag-handle {
+  pointer-events: auto;
+}
+
+/* Mobile long-press feedback */
+@media (max-width: 768px) {
+  .task-item-drag-container:active .drag-handle,
+  .dashboard-task-drag-container:active .drag-handle {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+  }
+}
+
+/* Better visual hierarchy for drag states */
+.drag-over {
+  border-left: 4px solid #2196f3;
+  background: linear-gradient(90deg, #e3f2fd, transparent);
+}
+
+/* Prevent drag on completed tasks */
+.task-item-drag-container:has(.task-title.completed) .drag-handle,
+.dashboard-task-drag-container:has(.task-title.completed) .drag-handle {
+  display: none;
+}
+.forgot-password {
+  color: #007bff;
+  cursor: pointer;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.success-message {
+  color: green;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.toggle-auth {
+  color: #007bff;
+  cursor: pointer;
+  margin: 10px 0;
+}
+
+.toggle-auth:hover {
+  text-decoration: underline;
+}
+/* App.css - Black & White Styles */
+
+/* Header Styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #000000;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  border-bottom: 1px solid #333;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Menu Button */
+.menu-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.menu-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Dropdown Menu */
+.menu-container {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  min-width: 250px;
+  z-index: 1000;
+  margin-top: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #ddd;
+}
+
+.menu-section {
+  padding: 1rem;
+}
+
+.menu-section h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.8rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.menu-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 0.75rem 0;
+}
+
+/* Menu Items */
+.menu-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 0.25rem;
+  transition: background-color 0.2s;
+  font-size: 0.9rem;
+  color: #000000;
+}
+
+.menu-item:hover {
+  background-color: #f0f0f0;
+}
+
+.menu-item.active {
+  background-color: #000000;
+  color: white;
+}
+
+/* Add Space in Menu */
+.add-space-btn {
+  color: #000000;
+  font-weight: 600;
+}
+
+.add-space-menu {
+  padding: 0.5rem 0;
+}
+
+.menu-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  background: #ffffff;
+  color: #000000;
+}
+
+.menu-form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.menu-action-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #000000;
+}
+
+.menu-action-btn.primary {
+  background: #000000;
+  color: white;
+  border-color: #000000;
+}
+
+/* Logout Button in Menu */
+.logout-menu-btn {
+  color: #000000;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  font-weight: 600;
+}
+
+/* Main Container */
+.main-container {
+  display: flex;
+  height: calc(100vh - 80px);
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+/* Logout Button */
+.logout-btn {
+  background: #000000;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  border: 1px solid #333;
+}
+
+.logout-btn:hover {
+  background: #333333;
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  color: #000000;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+  }
+  
+  .header h1 {
+    font-size: 1.2rem;
+  }
+  
+  .content {
+    padding: 1rem;
+  }
+  
+  .dropdown-menu {
+    min-width: 200px;
+  }
+}
+/* App.css - Updated Styles for Left Corner Menu */
+
+/* Header Styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #000000;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  border-bottom: 1px solid #333;
+  position: relative;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+/* Header Title with Dropdown */
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.header-title:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.app-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.dropdown-arrow {
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+/* Dropdown Menu with Scroll */
+.menu-container {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  min-width: 280px;
+  max-height: 400px;
+  z-index: 1000;
+  margin-top: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.menu-header {
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.menu-content {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.menu-section {
+  padding: 1rem 1.5rem;
+}
+
+/* Scrollbar styling for menu */
+.menu-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.menu-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.menu-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    max-height: 70vh;
+    min-width: 250px;
+    left: -1rem;
+  }
+  
+  .menu-content {
+    max-height: 60vh;
+  }
+}
+
+.menu-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.menu-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 1rem 0;
+}
+
+/* Menu Items */
+.menu-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 0.25rem;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.menu-item:hover {
+  background-color: #f5f5f5;
+  transform: translateX(2px);
+}
+
+.menu-item.active {
+  background-color: #000000;
+  color: white;
+  font-weight: 600;
+}
+
+.space-item {
+  padding-left: 1.5rem;
+  font-weight: 400;
+}
+
+/* Add Space in Menu */
+.add-space-btn {
+  color: #000000;
+  font-weight: 600;
+  border: 1px dashed #ccc;
+  background: #f8f9fa;
+}
+
+.add-space-btn:hover {
+  background: #e9ecef;
+  border-color: #000000;
+}
+
+.add-space-menu {
+  padding: 0.5rem 0;
+}
+
+.menu-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  background: #ffffff;
+  color: #000000;
+  box-sizing: border-box;
+}
+
+.menu-input:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+}
+
+.menu-form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.menu-action-btn {
+  flex: 1;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #000000;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.menu-action-btn:hover {
+  background: #f5f5f5;
+}
+
+.menu-action-btn.primary {
+  background: #000000;
+  color: white;
+  border-color: #000000;
+}
+
+.menu-action-btn.primary:hover {
+  background: #333333;
+  border-color: #333333;
+}
+
+/* Main Container */
+.main-container {
+  display: flex;
+  height: calc(100vh - 80px);
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+/* Logout Button */
+.logout-btn {
+  background: #000000;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  border: 1px solid #333;
+  font-weight: 500;
+}
+
+.logout-btn:hover {
+  background: #333333;
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  color: #000000;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+  }
+  
+  .header-title {
+    font-size: 1.3rem;
+  }
+  
+  .app-title {
+    font-size: 1.3rem;
+  }
+  
+  .content {
+    padding: 1rem;
+  }
+  
+  .dropdown-menu {
+    min-width: 250px;
+    left: -1rem;
+  }
+  
+  .menu-section {
+    padding: 1rem;
+  }
+}
+/* Show All / Hide Tasks Container */
+.show-all-container {
+  margin: 1.5rem 0;
+  padding: 0 1rem;
+}
+
+.show-all-card {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.show-all-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.show-all-info {
+  margin-bottom: 1rem;
+}
+
+.show-all-text {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.show-all-subtext {
+  display: block;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+/* Show All / Hide Tasks Button */
+.show-all-btn {
+  background: #000000;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 250px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.show-all-btn:hover {
+  background: #333333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.show-all-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Different styles for Show vs Hide states */
+.show-all-btn.show-tasks {
+  background: linear-gradient(135deg, #000000, #333333);
+}
+
+.show-all-btn.hide-tasks {
+  background: linear-gradient(135deg, #6c757d, #495057);
+  color: white;
+}
+
+.show-all-btn.hide-tasks:hover {
+  background: linear-gradient(135deg, #5a6268, #3d4348);
+}
+
+/* Animation for task list expansion */
+.task-list {
+  transition: all 0.3s ease;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .show-all-container {
+    margin: 1rem 0;
+    padding: 0 0.5rem;
+  }
+  
+  .show-all-card {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+  
+  .show-all-text {
+    font-size: 0.9rem;
+  }
+  
+  .show-all-subtext {
+    font-size: 0.8rem;
+  }
+  
+  .show-all-btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.85rem;
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  .show-all-card {
+    padding: 0.875rem;
+  }
+  
+  .show-all-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    max-width: 200px;
+  }
+  
+  .show-all-info {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* Smooth transition for task items */
+.task-item-drag-container,
+.dashboard-task-drag-container {
+  transition: all 0.3s ease;
+}
+
+/* Loading state animation */
+.show-all-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Focus states for accessibility */
+.show-all-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Success state when all tasks are shown */
+.show-all-card.all-shown {
+  background: #f8fff9;
+  border-color: #d4edda;
+}
+
+.show-all-card.all-shown .show-all-text {
+  color: #155724;
+}
+
+.show-all-card.all-shown .show-all-subtext {
+  color: #28a745;
+}
+
+/* Empty state when no tasks */
+.no-tasks + .show-all-container {
+  display: none;
+}
+/* Space Item with Delete Button */
+.menu-space-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  position: relative;
+  color: #333; /* Default text color */
+}
+
+.menu-space-item:hover {
+  background-color: #f5f5f5;
+}
+
+.menu-space-item.active {
+  background-color: #000000;
+  color: white; /* This will make ALL text white in active state */
+}
+
+.space-name {
+  flex: 1;
+  font-size: 0.9rem;
+  color: inherit; /* This inherits from parent (.menu-space-item) */
+}
+
+.delete-space-btn {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  opacity: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-space-item:hover .delete-space-btn {
+  opacity: 1;
+}
+
+.delete-space-btn:hover {
+  color: #e74c3c;
+  background-color: rgba(231, 76, 60, 0.1);
+}
+
+/* Fix for active state - make delete button more visible */
+.menu-space-item.active .delete-space-btn {
+  color: rgba(255, 255, 255, 0.8);
+  opacity: 0.7;
+}
+
+.menu-space-item.active:hover .delete-space-btn {
+  opacity: 1;
+}
+
+.menu-space-item.active .delete-space-btn:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+  opacity: 1;
+}
+
+/* Delete Confirmation Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.delete-confirm-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 100%;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.modal-content {
+  padding: 1.5rem;
+}
+
+.modal-content p {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  line-height: 1.5;
+}
+
+.warning-text {
+  color: #e74c3c !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.modal-actions {
+  padding: 1rem 1.5rem 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 100px;
+}
+
+.cancel-btn {
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+}
+
+.cancel-btn:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.delete-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #c0392b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+}
+
+.delete-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .delete-confirm-modal {
+    max-width: 90%;
+    margin: 1rem;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-btn {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .menu-space-item {
+    padding: 0.75rem 1rem;
+  }
+  
+  .delete-space-btn {
+    opacity: 1; /* Always show on mobile for better UX */
+  }
+}
+
+/* Focus states for accessibility */
+.delete-space-btn:focus,
+.modal-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.delete-btn:focus {
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.3);
+}
+/* Logout Button */
+.logout-btn {
+  background: #ffffff;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #e74c3c;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
+/* Focus state for accessibility */
+.logout-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.3);
+}
