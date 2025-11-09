@@ -12,7 +12,7 @@ const SpaceView = ({ space, setSelectedTask, setView }) => {
   // Search and pagination states
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [visibleTasksCount, setVisibleTasksCount] = useState(3); // Show 3 tasks initially per page
+  const [showAllTasks, setShowAllTasks] = useState(false); // Toggle for show all/hide tasks
   const tasksPerPage = 20;
 
   // Drag and drop states
@@ -110,41 +110,35 @@ const SpaceView = ({ space, setSelectedTask, setView }) => {
   const endIndex = startIndex + tasksPerPage;
   const pageTasks = sortedTasks.slice(startIndex, endIndex);
   
-  // Current visible tasks for current page (first 3, then load more)
-  const currentTasks = pageTasks.slice(0, visibleTasksCount);
-
-  // Check if there are more tasks to load in current page
-  const hasMoreTasksInPage = visibleTasksCount < pageTasks.length;
-
-  // Load all tasks in current page
-  const loadAllTasksInPage = () => {
-    setVisibleTasksCount(pageTasks.length);
+  // Current visible tasks - show 3 initially, or all if showAllTasks is true
+  const initialTasksCount = 3;
+  const currentTasks = showAllTasks ? pageTasks : pageTasks.slice(0, initialTasksCount);
+  const toggleShowAllTasks = () => {
+    setShowAllTasks(!showAllTasks);
   };
-
-  // Pagination functions
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
-      setVisibleTasksCount(3);
+      setShowAllTasks(false); // Reset to show limited tasks when changing page
     }
   };
 
   const goToPrevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
-      setVisibleTasksCount(3);
+      setShowAllTasks(false); // Reset to show limited tasks when changing page
     }
   };
 
   const goToPage = (page) => {
     setCurrentPage(page);
-    setVisibleTasksCount(3);
+    setShowAllTasks(false); // Reset to show limited tasks when changing page
   };
 
-  // Reset to first page and 3 tasks when search changes
+  // Reset to first page and limited tasks when search changes
   useEffect(() => {
     setCurrentPage(1);
-    setVisibleTasksCount(3);
+    setShowAllTasks(false);
   }, [searchTerm]);
 
   // DRAG AND DROP FUNCTIONS
@@ -536,36 +530,28 @@ const SpaceView = ({ space, setSelectedTask, setView }) => {
         )}
       </div>
 
-      {/* Load All Button for current page */}
-      {hasMoreTasksInPage && (
-        <div className="load-all-container">
-          <div className="load-all-card">
-            <div className="load-all-info">
-              <span className="load-all-text">
-                Showing {currentTasks.length} of {pageTasks.length} tasks on this page
+      {/* Show All / Hide Tasks Toggle Button */}
+      {pageTasks.length > initialTasksCount && (
+        <div className="show-all-container">
+          <div className="show-all-card">
+            <div className="show-all-info">
+              <span className="show-all-text">
+                {showAllTasks 
+                  ? `Showing all ${pageTasks.length} tasks on this page` 
+                  : `Showing ${currentTasks.length} of ${pageTasks.length} tasks on this page`}
               </span>
-              <span className="load-all-subtext">
-                {pageTasks.length - currentTasks.length} more tasks available
+              <span className="show-all-subtext">
+                {showAllTasks 
+                  ? 'All tasks are currently visible' 
+                  : `${pageTasks.length - currentTasks.length} more tasks available`}
               </span>
             </div>
             <button 
-              onClick={loadAllTasksInPage}
-              className="load-all-btn"
+              onClick={toggleShowAllTasks}
+              className={`show-all-btn ${showAllTasks ? 'hide-tasks' : 'show-tasks'}`}
             >
-              Load All {pageTasks.length} Tasks
+              {showAllTasks ? 'Hide Tasks' : `Show All ${pageTasks.length} Tasks`}
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Show when all tasks are loaded for current page */}
-      {!hasMoreTasksInPage && currentTasks.length > 0 && (
-        <div className="all-tasks-loaded">
-          <div className="all-tasks-card">
-            <span className="all-tasks-icon">✅</span>
-            <span className="all-tasks-text">
-              All {currentTasks.length} tasks loaded on page {currentPage}
-            </span>
           </div>
         </div>
       )}
