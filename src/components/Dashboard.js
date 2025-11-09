@@ -9,11 +9,11 @@ const Dashboard = ({ spaces, setSelectedTask, setView }) => {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [recentlyCompletedTasks, setRecentlyCompletedTasks] = useState(new Set());
   const [taskCompletionTime, setTaskCompletionTime] = useState({});
-  
+
   // Search and pagination states
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [visibleTasksCount, setVisibleTasksCount] = useState(3); // Show 3 tasks initially per page
+  const [showAllTasks, setShowAllTasks] = useState(false); // Toggle for show all/hide tasks
   const tasksPerPage = 20;
 
   // Drag and drop states
@@ -25,60 +25,61 @@ const Dashboard = ({ spaces, setSelectedTask, setView }) => {
   React.useEffect(() => {
     setLocalSpaces(spaces);
   }, [spaces]);
-useEffect(() => {
-  const searchTasks = async (searchTerm) => {
-    if (!searchTerm.trim()) {
-      return spaces; // Return all spaces if no search term
-    }
 
-    try {
-      const spacesRef = collection(db, 'spaces');
-      const searchQuery = query(
-        spacesRef,
-        where('todos', '!=', null) // Ensure spaces have todos
-      );
-      
-      const querySnapshot = await getDocs(searchQuery);
-      const searchedSpaces = [];
+  useEffect(() => {
+    const searchTasks = async (searchTerm) => {
+      if (!searchTerm.trim()) {
+        return spaces; // Return all spaces if no search term
+      }
 
-      querySnapshot.forEach((doc) => {
-        const spaceData = doc.data();
-        const filteredTodos = spaceData.todos.filter(task => 
-          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      try {
+        const spacesRef = collection(db, 'spaces');
+        const searchQuery = query(
+          spacesRef,
+          where('todos', '!=', null) // Ensure spaces have todos
         );
 
-        if (filteredTodos.length > 0) {
-          searchedSpaces.push({
-            id: doc.id,
-            ...spaceData,
-            todos: filteredTodos
-          });
-        }
-      });
+        const querySnapshot = await getDocs(searchQuery);
+        const searchedSpaces = [];
 
-      return searchedSpaces;
-    } catch (error) {
-      console.error('Error searching tasks:', error);
-      return spaces; // Fallback to local spaces
-    }
-  };
+        querySnapshot.forEach((doc) => {
+          const spaceData = doc.data();
+          const filteredTodos = spaceData.todos.filter(task =>
+            task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()))
+          );
 
-  const performSearch = async () => {
-    if (searchTerm.trim()) {
-      const searchedSpaces = await searchTasks(searchTerm);
-      setLocalSpaces(searchedSpaces);
-    } else {
-      setLocalSpaces(spaces);
-    }
-  };
+          if (filteredTodos.length > 0) {
+            searchedSpaces.push({
+              id: doc.id,
+              ...spaceData,
+              todos: filteredTodos
+            });
+          }
+        });
 
-  const timeoutId = setTimeout(() => {
-    performSearch();
-  }, 300); // Debounce search
+        return searchedSpaces;
+      } catch (error) {
+        console.error('Error searching tasks:', error);
+        return spaces; // Fallback to local spaces
+      }
+    };
 
-  return () => clearTimeout(timeoutId);
-}, [searchTerm, spaces]);
+    const performSearch = async () => {
+      if (searchTerm.trim()) {
+        const searchedSpaces = await searchTasks(searchTerm);
+        setLocalSpaces(searchedSpaces);
+      } else {
+        setLocalSpaces(spaces);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      performSearch();
+    }, 300); // Debounce search
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, spaces]);
 
   const prioritizedTasks = useMemo(() => {
     const allTasks = [];
@@ -87,9 +88,9 @@ useEffect(() => {
         const isRecentlyCompleted = recentlyCompletedTasks.has(todo.id);
         const completionTime = taskCompletionTime[todo.id];
         const currentTime = new Date().getTime();
-        
+
         const shouldShowAsIncomplete = isRecentlyCompleted && completionTime && (currentTime - completionTime < 5000);
-        
+
         allTasks.push({
           ...todo,
           spaceName: space.name,
@@ -111,20 +112,20 @@ useEffect(() => {
     const sortedTasks = [...filteredTasks].sort((a, b) => {
       if (a.completed && !b.completed) return 1;
       if (!a.completed && b.completed) return -1;
-      
+
       if (!a.completed && !b.completed) {
         if (a.priority !== b.priority) {
           return a.priority - b.priority;
         }
         return new Date(b.createdAt) - new Date(a.createdAt);
       }
-      
+
       if (a.completed && b.completed) {
         const aDate = a.completedAt || a.updatedAt || a.createdAt;
         const bDate = b.completedAt || b.updatedAt || b.createdAt;
         return new Date(bDate) - new Date(aDate);
       }
-      
+
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
@@ -136,48 +137,44 @@ useEffect(() => {
   const startIndex = (currentPage - 1) * tasksPerPage;
   const endIndex = startIndex + tasksPerPage;
   const pageTasks = prioritizedTasks.slice(startIndex, endIndex);
-  
-  // Current visible tasks for current page (first 3, then load more)
-  const currentTasks = pageTasks.slice(0, visibleTasksCount);
 
-  // Check if there are more tasks to load in current page
-  const hasMoreTasksInPage = visibleTasksCount < pageTasks.length;
-
-  // Load all tasks in current page
-  const loadAllTasksInPage = () => {
-    setVisibleTasksCount(pageTasks.length);
+  // Current visible tasks - show 3 initially, or all if showAllTasks is true
+  const initialTasksCount = 3;
+  const currentTasks = showAllTasks ? pageTasks : pageTasks.slice(0, initialTasksCount);
+  const toggleShowAllTasks = () => {
+    setShowAllTasks(!showAllTasks);
   };
 
   // Pagination functions
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
-      setVisibleTasksCount(3); // Reset to 3 tasks for new page
+      setShowAllTasks(false); // Reset to show limited tasks when changing page
     }
   };
 
   const goToPrevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
-      setVisibleTasksCount(3); // Reset to 3 tasks for new page
+      setShowAllTasks(false); // Reset to show limited tasks when changing page
     }
   };
 
   const goToPage = (page) => {
     setCurrentPage(page);
-    setVisibleTasksCount(3); // Reset to 3 tasks for new page
+    setShowAllTasks(false); // Reset to show limited tasks when changing page
   };
 
-  // Reset to first page and 3 tasks when search or filter changes
+  // Reset to first page and limited tasks when search or filter changes
   useEffect(() => {
     setCurrentPage(1);
-    setVisibleTasksCount(3);
+    setShowAllTasks(false);
   }, [searchTerm, filter]);
 
   // DRAG AND DROP FUNCTIONS FOR DASHBOARD
   const handleDragStart = (e, task) => {
     if (task.completed) return;
-    
+
     e.dataTransfer.setData('text/plain', JSON.stringify({
       taskId: task.id,
       spaceId: task.spaceId
@@ -185,14 +182,14 @@ useEffect(() => {
     e.dataTransfer.effectAllowed = 'move';
     setDraggedTask(task);
     setIsDragging(true);
-    
+
     e.currentTarget.classList.add('dragging');
   };
 
   const handleDragOver = (e, task) => {
     e.preventDefault();
     if (task.completed || !draggedTask || task.id === draggedTask.id) return;
-    
+
     e.dataTransfer.dropEffect = 'move';
     setDragOverTaskId(task.id);
   };
@@ -212,7 +209,7 @@ useEffect(() => {
 
   const handleDrop = async (e, dropTargetTask) => {
     e.preventDefault();
-    
+
     if (!draggedTask || !dropTargetTask || draggedTask.id === dropTargetTask.id || dropTargetTask.completed) {
       resetDragState();
       return;
@@ -286,19 +283,19 @@ useEffect(() => {
         if (space.id === spaceId) {
           const updatedTodos = space.todos.map(task =>
             task.id === taskId
-              ? { 
-                  ...task, 
-                  completed: newCompletedState,
-                  completedAt: newCompletedState ? currentTime : null,
-                  updatedAt: currentTime
-                }
+              ? {
+                ...task,
+                completed: newCompletedState,
+                completedAt: newCompletedState ? currentTime : null,
+                updatedAt: currentTime
+              }
               : task
           );
           return { ...space, todos: updatedTodos };
         }
         return space;
       });
-      
+
       setLocalSpaces(updatedSpaces);
 
       if (newCompletedState) {
@@ -308,7 +305,7 @@ useEffect(() => {
           ...prev,
           [taskId]: completionTimestamp
         }));
-        
+
         setTimeout(() => {
           setRecentlyCompletedTasks(prev => {
             const newSet = new Set(prev);
@@ -440,7 +437,7 @@ useEffect(() => {
 
   // HELPER FUNCTIONS
   const getPriorityLabel = (priority) => {
-    switch(priority) {
+    switch (priority) {
       case 1: return 'High';
       case 2: return 'Medium';
       case 3: return 'Low';
@@ -449,7 +446,7 @@ useEffect(() => {
   };
 
   const getPriorityClass = (priority) => {
-    switch(priority) {
+    switch (priority) {
       case 1: return 'priority-high';
       case 2: return 'priority-medium';
       case 3: return 'priority-low';
@@ -475,7 +472,7 @@ useEffect(() => {
   const taskCounts = getTaskCounts();
 
   const getCurrentFilterLabel = () => {
-    switch(filter) {
+    switch (filter) {
       case 'all': return `All (${taskCounts.all})`;
       case 'incomplete': return `Incomplete (${taskCounts.incomplete})`;
       case 'completed': return `Completed (${taskCounts.completed})`;
@@ -502,7 +499,7 @@ useEffect(() => {
           className="search-input"
         />
         {searchTerm && (
-          <button 
+          <button
             className="clear-search"
             onClick={() => setSearchTerm('')}
           >
@@ -513,7 +510,7 @@ useEffect(() => {
 
       <div className="dashboard-controls">
         <div className="filter-dropdown-container">
-          <button 
+          <button
             className="filter-dropdown-btn"
             onClick={(e) => {
               e.stopPropagation();
@@ -523,22 +520,22 @@ useEffect(() => {
             {getCurrentFilterLabel()}
             <span className="dropdown-arrow">▼</span>
           </button>
-          
+
           {showFilterDropdown && (
             <div className="filter-dropdown-menu">
-              <button 
+              <button
                 className={`filter-dropdown-item ${filter === 'all' ? 'active' : ''}`}
                 onClick={() => handleFilterChange('all')}
               >
                 All ({taskCounts.all})
               </button>
-              <button 
+              <button
                 className={`filter-dropdown-item ${filter === 'incomplete' ? 'active' : ''}`}
                 onClick={() => handleFilterChange('incomplete')}
               >
                 Incomplete ({taskCounts.incomplete})
               </button>
-              <button 
+              <button
                 className={`filter-dropdown-item ${filter === 'completed' ? 'active' : ''}`}
                 onClick={() => handleFilterChange('completed')}
               >
@@ -548,7 +545,7 @@ useEffect(() => {
           )}
         </div>
       </div>
-      
+
       {editingPriority && (
         <div className="priority-editor-panel">
           <div className="priority-editor-header">
@@ -556,19 +553,19 @@ useEffect(() => {
             <button onClick={cancelPriorityEdit} className="close-editor">×</button>
           </div>
           <div className="priority-options">
-            <button 
+            <button
               className="priority-option-btn priority-high"
               onClick={() => handlePriorityChange(editingPriority.taskId, editingPriority.spaceId, 1)}
             >
               High
             </button>
-            <button 
+            <button
               className="priority-option-btn priority-medium"
               onClick={() => handlePriorityChange(editingPriority.taskId, editingPriority.spaceId, 2)}
             >
               Medium
             </button>
-            <button 
+            <button
               className="priority-option-btn priority-low"
               onClick={() => handlePriorityChange(editingPriority.taskId, editingPriority.spaceId, 3)}
             >
@@ -585,18 +582,18 @@ useEffect(() => {
       {/* Page Info */}
       {prioritizedTasks.length > 0 && (
         <div className="page-info">
-          Page {currentPage} of {totalPages} • 
+          Page {currentPage} of {totalPages} •
           Showing {startIndex + 1}-{Math.min(endIndex, prioritizedTasks.length)} of {prioritizedTasks.length} total tasks
         </div>
       )}
-      
+
       <div className="task-list">
         {currentTasks.map(task => (
           <React.Fragment key={task.id}>
             {dragOverTaskId === task.id && (
               <div className="drop-zone active" />
             )}
-            
+
             <div
               className={`dashboard-task-drag-container ${dragOverTaskId === task.id ? 'drag-over' : ''}`}
               draggable={!task.completed}
@@ -622,47 +619,39 @@ useEffect(() => {
         ))}
         {currentTasks.length === 0 && (
           <div className="no-tasks">
-            {searchTerm 
-              ? 'No tasks found matching your search' 
-              : filter === 'completed' 
-                ? 'No completed tasks found' 
-                : filter === 'incomplete' 
-                  ? 'No incomplete tasks found' 
+            {searchTerm
+              ? 'No tasks found matching your search'
+              : filter === 'completed'
+                ? 'No completed tasks found'
+                : filter === 'incomplete'
+                  ? 'No incomplete tasks found'
                   : 'No tasks found. Create a space and add some tasks!'}
           </div>
         )}
       </div>
 
-      {/* Load All Button for current page */}
-      {hasMoreTasksInPage && (
-        <div className="load-all-container">
-          <div className="load-all-card">
-            <div className="load-all-info">
-              <span className="load-all-text">
-                Showing {currentTasks.length} of {pageTasks.length} tasks on this page
+      {/* Show All / Hide Tasks Toggle Button */}
+      {pageTasks.length > initialTasksCount && (
+        <div className="show-all-container">
+          <div className="show-all-card">
+            <div className="show-all-info">
+              <span className="show-all-text">
+                {showAllTasks
+                  ? `Showing all ${pageTasks.length} tasks on this page`
+                  : `Showing ${currentTasks.length} of ${pageTasks.length} tasks on this page`}
               </span>
-              <span className="load-all-subtext">
-                {pageTasks.length - currentTasks.length} more tasks available
+              <span className="show-all-subtext">
+                {showAllTasks
+                  ? 'All tasks are currently visible'
+                  : `${pageTasks.length - currentTasks.length} more tasks available`}
               </span>
             </div>
-            <button 
-              onClick={loadAllTasksInPage}
-              className="load-all-btn"
+            <button
+              onClick={toggleShowAllTasks}
+              className={`show-all-btn ${showAllTasks ? 'hide-tasks' : 'show-tasks'}`}
             >
-              Load All {pageTasks.length} Tasks
+              {showAllTasks ? 'Hide Tasks' : `Show All ${pageTasks.length} Tasks`}
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Show when all tasks are loaded for current page */}
-      {!hasMoreTasksInPage && currentTasks.length > 0 && (
-        <div className="all-tasks-loaded">
-          <div className="all-tasks-card">
-            <span className="all-tasks-icon">✅</span>
-            <span className="all-tasks-text">
-              All {currentTasks.length} tasks loaded on page {currentPage}
-            </span>
           </div>
         </div>
       )}
@@ -670,14 +659,14 @@ useEffect(() => {
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className="pagination-controls">
-          <button 
+          <button
             onClick={goToPrevPage}
             disabled={currentPage === 1}
             className="pagination-btn prev-btn"
           >
             ← Previous
           </button>
-          
+
           <div className="pagination-pages">
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum;
@@ -690,7 +679,7 @@ useEffect(() => {
               } else {
                 pageNum = currentPage - 2 + i;
               }
-              
+
               return (
                 <button
                   key={pageNum}
@@ -702,8 +691,8 @@ useEffect(() => {
               );
             })}
           </div>
-          
-          <button 
+
+          <button
             onClick={goToNextPage}
             disabled={currentPage === totalPages}
             className="pagination-btn next-btn"
@@ -727,7 +716,7 @@ const DashboardTaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete, on
     if (e.target.type === 'checkbox' || e.target.closest('.priority-badge-editable')) {
       return;
     }
-    
+
     touchStartX.current = e.touches[0].clientX;
     startSwipeOffset.current = swipeOffset;
     setIsSwiping(true);
@@ -735,10 +724,10 @@ const DashboardTaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete, on
 
   const handleTouchMove = (e) => {
     if (!isSwiping) return;
-    
+
     const currentX = e.touches[0].clientX;
     const deltaX = currentX - touchStartX.current;
-    
+
     if (deltaX > 0) {
       const newOffset = Math.min(startSwipeOffset.current + deltaX, 80);
       setSwipeOffset(newOffset);
@@ -751,7 +740,7 @@ const DashboardTaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete, on
   const handleTouchEnd = (e) => {
     if (!isSwiping) return;
     setIsSwiping(false);
-    
+
     if (swipeOffset > 40) {
       setSwipeOffset(80);
     } else {
@@ -763,7 +752,7 @@ const DashboardTaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete, on
     if (e.target.type === 'checkbox' || e.target.closest('.priority-badge-editable')) {
       return;
     }
-    
+
     touchStartX.current = e.clientX;
     startSwipeOffset.current = swipeOffset;
     setIsSwiping(true);
@@ -771,9 +760,9 @@ const DashboardTaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete, on
 
   const handleMouseMove = (e) => {
     if (!isSwiping) return;
-    
+
     const deltaX = e.clientX - touchStartX.current;
-    
+
     if (deltaX > 0) {
       const newOffset = Math.min(startSwipeOffset.current + deltaX, 80);
       setSwipeOffset(newOffset);
@@ -786,7 +775,7 @@ const DashboardTaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete, on
   const handleMouseUp = () => {
     if (!isSwiping) return;
     setIsSwiping(false);
-    
+
     if (swipeOffset > 40) {
       setSwipeOffset(80);
     } else {
@@ -818,7 +807,7 @@ const DashboardTaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete, on
   };
 
   return (
-    <div 
+    <div
       className={`dashboard-task-item-container ${isRecentlyCompleted ? 'recently-completed' : ''}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -828,25 +817,25 @@ const DashboardTaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete, on
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
     >
-      <div 
+      <div
         className="dashboard-delete-action"
-        style={{ 
+        style={{
           opacity: swipeOffset > 0 ? 1 : 0,
           transform: `translateX(${swipeOffset - 80}px)`,
           transition: isSwiping ? 'none' : 'all 0.3s ease'
         }}
       >
-        <button 
-          onClick={handleDeleteClick} 
+        <button
+          onClick={handleDeleteClick}
           className="dashboard-delete-btn"
         >
           ×
         </button>
       </div>
 
-      <div 
+      <div
         className="dashboard-task-item"
-        style={{ 
+        style={{
           transform: `translateX(${swipeOffset}px)`,
           transition: isSwiping ? 'none' : 'all 0.3s ease'
         }}
@@ -873,7 +862,7 @@ const DashboardTaskItem = ({ task, onDoubleClick, onDelete, onToggleComplete, on
           )}
         </div>
 
-        <div 
+        <div
           className={`priority-badge-editable ${getPriorityClass(task.priority)} ${task.completed ? 'completed' : ''}`}
           onClick={(e) => {
             e.stopPropagation();
